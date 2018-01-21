@@ -137,8 +137,8 @@ The following four operation modes are available.
 - always ON
 
 Unused Alex-Rx-out/Alex-Rx-Antenna selection bits on the openHPSDR protocol are used to select these modes from software.
-
 If piHPSDR, ANT panel is used:
+
 <img src="compact-trx/powercontrol/docs/Fan_Control_setting.jpg" width="480px">
 
 ## External Linear Amprifier BAND control
@@ -149,8 +149,8 @@ The command is sent when HL Tx frequency is changed.
 Activating TUNE starts ATU (eg. ICOM AH-4) tuning operation if Apollo is enabled on piHPSDR.
 When the ATU tuning operation is completed, transmission is automatically stopped by the internal circuit.
 Deactivate TUNE on piHPSDR manually to retuen to receiving.
-
 Typical control sequence:
+
 <img src="compact-trx/powercontrol/docs/ATU_timing_chart.jpg" width="480px">
 
 
