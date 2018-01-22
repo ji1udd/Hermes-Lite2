@@ -144,6 +144,9 @@ If piHPSDR, ANT panel is used:
 ## External Linear Amprifier BAND control
 Elecraft serial command "FA(VFO A frequency)"  is used to switch the LPFs in an external linear amplifier (eg. Hardrock-50) .
 The command is sent when HL Tx frequency is changed.
+Serial format : 9600bps, 8bit data, no-parity, 1-stop bit.
+
+<img src="compact-trx/powercontrol/docs/ExtAMP-ATU-Interface.jpg" width="480px">
 
 ## External ATU control
 Activating TUNE starts ATU (eg. ICOM AH-4) tuning operation if Apollo is enabled on piHPSDR.
