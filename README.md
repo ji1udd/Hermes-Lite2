@@ -156,6 +156,8 @@ Typical control sequence:
 
 <img src="compact-trx/powercontrol/docs/ATU_timing_chart.jpg" width="480px">
 
+[State Diagram](compact-trx/powercontrol/docs/ATU_CTRL_StateDiagram.pdf)
+[Test Video](https://youtu.be/eBkR3WY3l_Q)
 
 ## piHPSDR customize
 
