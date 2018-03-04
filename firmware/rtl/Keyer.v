@@ -1,5 +1,5 @@
 //
-//  Iambic CW Keyer for Hermes-Lite v1.22 
+//  Iambic CW Keyer for Hermes-Lite v1.22 , v2b3
 //    ( Tested on BeMicro CVA9 )
 //
 //  This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-// (C) Takashi Komatsumoto, JI1UDD 2016
+// (C) Takashi Komatsumoto, JI1UDD 2016, 2018
 
 `timescale 1 ns/100 ps
 
@@ -294,7 +294,14 @@ always @(posedge fastclk or negedge fastrstb)
 //		Tone on/off control at zero-cross
 
 wire zerocross ;
-wire toneon = (synckeyon[1] | ~zerocross)  ;
+reg  toneon ;
+always @(posedge fastclk or negedge fastrstb)
+  if (!fastrstb)
+    toneon <= 1'b0 ;
+  else if(synckeyon[1])
+    toneon <= 1'b1 ;
+  else if (zerocross)
+    toneon <= 1'b0 ;
 
 //		Generate sin wave data
 
@@ -311,11 +318,10 @@ reg [12:0] sinptr ;
 always @(posedge fastclk or negedge fastrstb )
   if (!fastrstb)
     sinptr <= 13'b0 ;
-  else if (toneon) begin
-    if (LRfall)
-      sinptr <= sinptr + DeltaPhase[9:0] ;
-//      sinptr <= sinptr + 10'd1000 ;
-  end
+  else if (!toneon)
+    sinptr <= 13'b0 ;
+  else if (LRfall)
+    sinptr <= sinptr + DeltaPhase[9:0] ;
 
 // Lookup sine table
 
@@ -330,28 +336,24 @@ sin8k8r sintbl8k(
 
 reg lastsign ;
 assign zerocross = ( lastsign != sintbl[7] ) ;
-//assign zerocross = ( lastsign != sinptr[12] ) ;
 always @(posedge fastclk or negedge fastrstb )
   if (!fastrstb)
     lastsign <= 1'b0 ;
-  else if (toneon)
+  else
     lastsign <= sintbl[7] ;
-//    lastsign <= sinptr[12] ;
 
 // Volume control
 
-wire [15:0] sindata = (sintbl << 8) ;
-
-wire [23:0] sinxmag ;
-mult16_8	audiovolumectrl (	// unsigned mult
-  .aclr(fastrst),				// async reset
+wire [16:0] sinxmag ;
+mult8_9	audiovolumectrl (	// signed mult
+  .aclr(fastrst||~toneon),	// async reset
   .clock(fastclk),			// clock
-  .dataa(sindata),			// 16bit input
-  .datab(audiovolume),		//  8bit input
-  .result(sinxmag)			// 24bit output
+  .dataa(sintbl),	   		// signed 8bit input
+  .datab({1'b0,audiovolume}),		//  signed 9bit input
+  .result(sinxmag)			// 17bit output
 );
 
-assign sidetone_codec = sinxmag[23:8] ;
+assign sidetone_codec = sinxmag[16:1] ;
 
 // ------------------------------------------
 //		Squar wave generator for piezo sounder
