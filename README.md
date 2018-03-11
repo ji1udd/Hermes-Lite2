@@ -32,6 +32,20 @@ In this [Test Video](https://youtu.be/d-YUDK2JaQg), this board was used with HL 
 
 Verilog-HDL code was released on my git (updated: 19 Oct 2017).  
 
+Unused Random bits on the openHPSDR protocol are used to enable speaker output setting from software.
+If piHPSDR, RX panel is used:
+
+<img src="compact-trx/Keyer_AK4951/docs/Speaker_Setting.jpg" width="360px">
+
+Typical Keyer setting:
+
+<img src="compact-trx/Keyer_AK4951/docs/Keyer_Setting.jpg" width="360px">
+
+Headset:
+
+<img src="compact-trx/Keyer_AK4951/docs/Headset_modification.jpg" width="360px">
+
+
 ## Interface board
 <img src="compact-trx/IF_board/docs/IF_board.JPG" width="240px">
 
@@ -47,6 +61,10 @@ Verilog-HDL code was released on my git (updated: 19 Oct 2017).
 [BOM](compact-trx/TX_RX_Filter/docs/BOM_FILTER.pdf)
 [Gerber](compact-trx/TX_RX_Filter/gerber/hl2filter.zip)
 [Errata](compact-trx/TX_RX_Filter/docs/Tx_Rx_Filter_v1.0_PCB_Errata.pdf)
+
+Filter setting:
+
+<img src="compact-trx/TX_RX_Filter/docs/Filter_Setting.JPG" width="360px">
 
 
 ## Power control board
@@ -139,7 +157,7 @@ The following four operation modes are available.
 Unused Alex-Rx-out/Alex-Rx-Antenna selection bits on the openHPSDR protocol are used to select these modes from software.
 If piHPSDR, ANT panel is used:
 
-<img src="compact-trx/powercontrol/docs/Fan_Control_setting.jpg" width="480px">
+<img src="compact-trx/powercontrol/docs/Fan_Control_setting.jpg" width="360px">
 
 ## External Linear Amprifier BAND control
 Elecraft serial command "FA(VFO A frequency)"  is used to switch the LPFs in an external linear amplifier (eg. Hardrock-50) .
@@ -158,6 +176,11 @@ Typical control sequence:
 
 [State Diagram](compact-trx/powercontrol/docs/ATU_CTRL_StateDiagram.pdf)
 [Test Video](https://youtu.be/eBkR3WY3l_Q)
+
+ATU Control is enabled:
+
+<img src="compact-trx/powercontrol/docs/ATU_Setting.jpg" width="360px">
+
 
 ## piHPSDR customize
 
