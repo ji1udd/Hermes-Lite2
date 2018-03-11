@@ -35,15 +35,15 @@ Verilog-HDL code was released on my git (updated: 19 Oct 2017).
 Unused Random bits on the openHPSDR protocol are used to enable speaker output setting from software.
 If piHPSDR, RX panel is used:
 
-<img src="compact-trx/Keyer_AK4951/docs/Speaker_Setting.jpg" width="360px">
+<img src="compact-trx/Keyer_AK4951/docs/Speaker_Setting.jpg" width="480px">
 
 Typical Keyer setting:
 
-<img src="compact-trx/Keyer_AK4951/docs/Keyer_Setting.jpg" width="360px">
+<img src="compact-trx/Keyer_AK4951/docs/Keyer_Setting.jpg" width="480px">
 
 Headset:
 
-<img src="compact-trx/Keyer_AK4951/docs/Headset_modification.jpg" width="360px">
+<img src="compact-trx/Keyer_AK4951/docs/Headset_modification.jpg" width="640px">
 
 
 ## Interface board
@@ -64,7 +64,7 @@ Headset:
 
 Filter setting:
 
-<img src="compact-trx/TX_RX_Filter/docs/Filter_Setting.JPG" width="360px">
+<img src="compact-trx/TX_RX_Filter/docs/Filter_Setting.jpg" width="480px">
 
 
 ## Power control board
@@ -157,7 +157,7 @@ The following four operation modes are available.
 Unused Alex-Rx-out/Alex-Rx-Antenna selection bits on the openHPSDR protocol are used to select these modes from software.
 If piHPSDR, ANT panel is used:
 
-<img src="compact-trx/powercontrol/docs/Fan_Control_setting.jpg" width="360px">
+<img src="compact-trx/powercontrol/docs/Fan_Control_setting.jpg" width="480px">
 
 ## External Linear Amprifier BAND control
 Elecraft serial command "FA(VFO A frequency)"  is used to switch the LPFs in an external linear amplifier (eg. Hardrock-50) .
@@ -179,7 +179,7 @@ Typical control sequence:
 
 ATU Control is enabled:
 
-<img src="compact-trx/powercontrol/docs/ATU_Setting.jpg" width="360px">
+<img src="compact-trx/powercontrol/docs/ATU_Setting.jpg" width="480px">
 
 
 ## piHPSDR customize
