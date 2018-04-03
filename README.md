@@ -26,6 +26,10 @@
 - [_Control sequence_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/powercontrol/docs/ATU_timing_chart.jpg)
 - Tested with ICOM AH-4
 
+## Cooling Fan control
+- controlled by temperature sensor
+- [_4 operation modes_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/powercontrol/docs/Fan_Control_setting.jpg)
+
 ## LED Ports
 - The function is automatically selected by ExtAMP/ExtATU interface circuit installation on board.
 <img src="CTRX_HL2b5/docs/LEDs_function.jpg" width="640px">
