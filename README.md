@@ -1,5 +1,7 @@
 # Hermes-Lite Ver2 Beta5 Compact Transceiver firmware
-[_VU2ZAZ's HL2 Companion board_](https://github.com/bnamnaidu/HL2-Companion-board-codec-and-Filter-)
+[_VU2ZAZ's HL2 Companion board_](https://github.com/bnamnaidu/HL2-Companion-board-codec-and-Filter-) ,
+[_Errata_](CTRX_HL2b5/docs/ComboBoardErrata_180406.pdf) ,
+[_HL2b5 Modification_](CTRX_HL2b5/docs/HL2b5_modification_for_ComboBoard.pdf)
 
 ## Based on the official 20180106 firmware.
 
