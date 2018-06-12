@@ -3,6 +3,7 @@
 This is HF QRP SDR compact transceiver that consists of Hermes-Lite Ver2 beta3 and Raspberry Pi.
 
 Note: My audio codec board and filter board are not compatible with beta5.
+The firmware of  VU2ZAZ's HL2 Companion board is [here](https://github.com/ji1udd/Hermes-Lite2/tree/CTRX_HL2b5).
 
 <img src="compact-trx/powercontrol/docs/compact-trx.JPG" width="480px">
 
