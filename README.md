@@ -25,6 +25,7 @@ Hermes-Lite Ver2, Raspberry Pi 2B, 5" HDMI Monitor, Power Control board, Audio c
 
 In this [Test Video](https://youtu.be/d-YUDK2JaQg), this board was used with HL v2 Beta3.
 
+[KeyerFunction](https://github.com/ji1udd/Hermes-Lite/blob/6M/audiocodec/docs/Keyer_Sequece_and_setting.pdf)
 [Schematic](compact-trx/Keyer_AK4951/docs/AudioCodec_AK4951_r201.pdf)
 [BOM](compact-trx/Keyer_AK4951/docs/BOM_AK4951_Codec_rev2.pdf)
 [Gerber](compact-trx/Keyer_AK4951/gerber/hl2ac4951.zip)
