@@ -161,11 +161,15 @@ module control(
   // PA
 `ifdef BETA2
   pa_tr,
-  pa_en
+  pa_en,
 `else
   pa_inttr,
-  pa_exttr
+  pa_exttr,
 `endif
+
+ int_ptt,
+ int_ptt_gated,
+ auto_tune
 );
 
 // Internal
@@ -284,11 +288,15 @@ output          pa_inttr;
 output          pa_exttr;
 `endif
 
+output          int_ptt;
+input           int_ptt_gated;
+output  logic   auto_tune = 1'b0;   // ATU tune
+
 parameter     HERMES_SERIALNO = 8'h0;
 
 
 logic         vna = 1'b0;                    // Selects vna mode when set.
-logic         pa_enable = 1'b0;
+logic         pa_enable = 1'b1;
 logic         tr_disable = 1'b0;
 logic [9:0]   cw_hang_time;
 
@@ -310,6 +318,7 @@ logic [ 5:0]  resp_cmd_addr = 6'h00, resp_cmd_addr_next;
 logic [31:0]  resp_cmd_data = 32'h00, resp_cmd_data_next;
 
 logic         int_ptt = 1'b0;
+logic         int_ptt_gated;
 
 logic [8:0]   led_count;
 logic         led_saturate;
@@ -376,7 +385,8 @@ always @(posedge clk) begin
     int_ptt <= cmd_ptt;
     if (cmd_addr == 6'h09) begin
       vna          <= cmd_data[23];      // 1 = enable vna mode
-      pa_enable    <= cmd_data[19];
+      auto_tune    <= cmd_data[20];      // Hermes - Appolo auto tune (0 = end, 1 = start)
+//    pa_enable    <= cmd_data[19];      // PA is always enabled
       tr_disable   <= cmd_data[18];
     end
     else if (cmd_addr == 6'h10) begin
@@ -438,7 +448,7 @@ debounce de_ptt(.clean_pb(ext_ptt), .pb(~io_phone_ring), .clk(clk));
 debounce de_txinhibit(.clean_pb(ext_txinhibit), .pb(~io_cn8), .clk(clk));
 
 
-assign tx_on = (int_ptt | cw_keydown | ext_ptt) & ~ext_txinhibit & run;
+assign tx_on = (int_ptt_gated | cw_keydown | ext_ptt) & ~ext_txinhibit & run;
 
 // Gererate two slow pulses for timing.  millisec_pulse occurs every one millisecond.
 // led_saturate occurs every 64 milliseconds.

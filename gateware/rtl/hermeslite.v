@@ -97,8 +97,8 @@ module hermeslite(
   inout           io_adc_sda,
   inout           io_scl2,
   inout           io_sda2,
-  input           io_db1_2,       // BETA2,BETA3: io_db24
-  input           io_db1_3,       // BETA2,BETA3: io_db22_3
+  output          io_db1_2,       // BETA2,BETA3: io_db24    // ATU Start
+  input           io_db1_3,       // BETA2,BETA3: io_db22_3  // ATU Status  (Pull Up)
   input           io_db1_4,       // BETA2,BETA3: io_db22_2
   output          io_db1_5,       // BETA2,BETA3: io_cn4_6
   input           io_db1_6,       // BETA2,BETA3: io_cn4_7    
@@ -277,6 +277,10 @@ logic [ 7:0]    asmi_data;
 logic [ 9:0]    asmi_rx_used;
 logic           asmi_rdreq;
 logic           asmi_reconfig;
+
+logic           int_ptt;
+logic           int_ptt_gated;
+logic           auto_tune;
 
 /////////////////////////////////////////////////////
 // Clocks
@@ -836,8 +840,8 @@ control #(.HERMES_SERIALNO(HERMES_SERIALNO)) control_i (
   .io_cn9(io_cn9),
   .io_cn10(io_cn10),
 
-  .io_db1_2(io_db1_2),     
-  .io_db1_3(io_db1_3),     
+  //.io_db1_2(io_db1_2),     
+  //.io_db1_3(io_db1_3),     
   .io_db1_4(io_db1_4),     
   .io_db1_5(io_db1_5),     
   .io_db1_6(io_db1_6),       
@@ -854,11 +858,16 @@ control #(.HERMES_SERIALNO(HERMES_SERIALNO)) control_i (
   // PA
 `ifdef BETA2
   .pa_tr(pa_tr),
-  .pa_en(pa_en)
+  .pa_en(pa_en),
 `else
   .pa_inttr(pa_inttr),
-  .pa_exttr(pa_exttr)
+  .pa_exttr(pa_exttr),
 `endif
+
+  // ATU
+  .int_ptt(int_ptt),
+  .int_ptt_gated(int_ptt_gated),
+  .auto_tune(auto_tune)
 );
 
 assign io_lvds_txp = 1'b0;
@@ -929,5 +938,16 @@ remote_update_app remote_update_app_i (
 
 `endif
 
+// ============================================================================== //
+//     External ATU Control 
+// ============================================================================== //
+ExtTuner ExtTuner(
+  .clk(clk_ctrl),           // 2.5MHz
+  .auto_tune(auto_tune),
+  .ATU_Status(io_db1_3),    // ATU Status
+  .ATU_Start(io_db1_2),     // ATU Start
+  .mox_in(int_ptt),         // int_ptt from PC
+  .mox_out(int_ptt_gated)
+);
 
 endmodule
