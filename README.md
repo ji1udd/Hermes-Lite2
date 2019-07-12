@@ -10,9 +10,9 @@
 - Mic gain (AK4951) : Normal 18dB, Boost 30dB
 - Enable SPEAKER : [_Re-use "Random"_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/Keyer_AK4951/docs/Speaker_Setting.jpg) on OpenHPSDR protocol.
 
-## HL2 filter (1 HPF, 6 LPFs) control
-- [_Alex / Apollo auto filter mode_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/TX_RX_Filter/docs/Filter_Setting.jpg) ; HPF and LPFs are switched according to TX and multi RXs frequencies.
-- Alex manual filter mode ; This mode is not supported by piHPSDR, but supported by [_PowerSDR_](CTRX_HL2b5/docs/PowerSDR_ALEX_ManualFilter_setting_for_Jims_Filter.jpg).
+## N2ADR filter (1 HPF, 6 LPFs) control
+- Support [_Alex / Apollo auto filter mode_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/TX_RX_Filter/docs/Filter_Setting.jpg) ; HPF and LPFs are switched according to TX and multi RXs frequencies.
+- Support Alex manual filter mode ; This mode is not supported by piHPSDR, but supported by [_PowerSDR_](CTRX_HL2b5/docs/PowerSDR_ALEX_ManualFilter_setting_for_Jims_Filter.jpg).
 - Short switch latency for CW keyer operation.
 - HPF is bypassed during TX.
 
@@ -44,5 +44,5 @@
 
 - For more detail of AK4951 audio codec board, refer to [_CompactTRX branch_](https://github.com/ji1udd/Hermes-Lite2/tree/CompactTRX) of my git. 
 - [_Installation guide_](CTRX_HL2b5/docs/Installation_Guide_codec_HL2b5_or_later.pdf)
-- [_Assemble option_](CTRX_HL2b5/docs/IF_board_assemble_option.pdf) of AK4951 audio codec board and [_I/F board_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/IF_board/docs/IF_board.JPG).
+- [_Assemble option_](CTRX_HL2b5/docs/IF_board_assemble_option.pdf) of AK4951 audio codec board and [_I/F board_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/IF_board/docs/IF_board.JPG). If another jack pin assignment is prefferd, it's possible to make another I/F board that has the jack pin assignment that you like and connect it to audio codec board using P2 and P3 ( or P4). CN4 on HL2 is not used.
 - [_Interface circuit for HARDROCK-50_](CTRX_HL2b5/docs/interface_HR50.pdf)
