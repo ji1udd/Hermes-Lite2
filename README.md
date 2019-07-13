@@ -42,7 +42,9 @@
 ## Use AK4951 audio codec board for HL2 Beta3 instead of VU2ZAZ's Companion board.
 <img src="https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/Keyer_AK4951/docs/KeyerIF_AK4951_board.JPG" width="240px">
 
-- For more detail of AK4951 audio codec board, refer to [_CompactTRX branch_](https://github.com/ji1udd/Hermes-Lite2/tree/CompactTRX) of my git. 
+- For more detail of AK4951 audio codec board, refer to [_CompactTRX branch_](https://github.com/ji1udd/Hermes-Lite2/tree/CompactTRX) on my git. 
 - [_Installation guide_](CTRX_HL2b5/docs/Installation_Guide_codec_HL2b5_or_later.pdf)
-- [_Assemble option_](CTRX_HL2b5/docs/IF_board_assemble_option.pdf) of AK4951 audio codec board and [_I/F board_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/IF_board/docs/IF_board.JPG). If another jack pin assignment is prefferd, it's possible to make another I/F board that has the jack pin assignment that you like and connect it to audio codec board using P2 and P3 ( or P4). CN4 on HL2 is not used.
+- [_Assemble option_](CTRX_HL2b5/docs/AudioCodecBoard_AssembleOption.pdf) of AK4951 audio codec board.
+- [_Assemble option between audio codec board_](CTRX_HL2b5/docs/IF_board_assemble_option.pdf) and [_I/F board_](https://github.com/ji1udd/Hermes-Lite2/blob/CompactTRX/compact-trx/IF_board/docs/IF_board.JPG).
+- If another jack pin assignment is prefferd, it's possible to make another I/F board that has the jack pin assignment that you like and connect it to audio codec board using P2 and P3 ( or P4). CN4 on HL2 is currently not used.
 - [_Interface circuit for HARDROCK-50_](CTRX_HL2b5/docs/interface_HR50.pdf)
