@@ -1000,8 +1000,8 @@ wire signed [15:0] Q;
 
 // if in VNA mode use the Rx[0] phase word for the Tx
 assign C122_phase_word_Tx = VNA ? C122_sync_phase_word[0] : C122_sync_phase_word_Tx;
-assign                  I = VNA ? 16'h4d80 : (cwkey ? {1'b0, cwlevel[17:3]} : y2_i);    // select VNA mode if active. Set CORDIC for max DAC output
-assign                  Q = (VNA | cwkey) ? 0 : y2_r;                   // taking into account CORDICs gain i.e. 0x7FFF/1.7
+assign                  I = VNA ? 16'h4d80 : (CW_PTT ? {1'b0, cwlevel[17:3]} : y2_i);    // select VNA mode if active. Set CORDIC for max DAC output
+assign                  Q = (VNA | CW_PTT) ? 0 : y2_r;                   // taking into account CORDICs gain i.e. 0x7FFF/1.7
 
 
 // NOTE:  I and Q inputs reversed to give correct sideband out
@@ -1246,11 +1246,11 @@ assign IO8 = 1'b1;
 //allow overflow message during tx to set pure signal feedback level
 assign OVERFLOW = (~leds[0] | ~leds[3]) ;
 
-
+wire CW_PTT;
 Hermes_Tx_fifo_ctrl #(RX_FIFO_SZ, TX_FIFO_SZ) TXFC
            (rst, clk_ad9866, IF_tx_fifo_wdata, IF_tx_fifo_wreq, IF_tx_fifo_full,
             IF_tx_fifo_used, IF_tx_fifo_clr, IF_tx_IQ_mic_rdy,
-            IF_tx_IQ_mic_data, IF_chan, IF_last_chan, clean_dash, clean_dot, (cwkey | clean_ptt), OVERFLOW,
+            IF_tx_IQ_mic_data, IF_chan, IF_last_chan, clean_dash, clean_dot, (CW_PTT | clean_ptt), OVERFLOW,
             Penny_serialno, Merc_serialno, Hermes_serialno, Penny_ALC, AIN1, AIN2,
             AIN3, AIN4, AIN6, IO4, IO5, IO6, IO8, VNA_start, VNA,
             response_out_tdata, response_out_tvalid, response_out_tready );
@@ -1639,7 +1639,7 @@ wire clean_txinhibit;
 debounce de_txinhibit(.clean_pb(clean_txinhibit), .pb(~io_cn8), .clk(clk_ad9866));
 
 wire mox_out;
-assign FPGA_PTT = (mox_out | cwkey | clean_ptt) & ~clean_txinhibit; // mox only updated when we get correct sync sequence
+assign FPGA_PTT = (mox_out | CW_PTT | clean_ptt) & ~clean_txinhibit; // mox only updated when we get correct sync sequence
 
 //---------------------------------------------------------
 //   State Machine to manage PWM interface
@@ -1812,7 +1812,7 @@ end
 // ADJUST if cordic max changes...
 localparam MAX_CWLEVEL = 18'h26c00; //(16'h4d80 << 3);
 wire clean_cwkey;
-wire cwkey;
+//wire cwkey;
 reg [17:0] cwlevel;
 reg [1:0] cwstate;
 localparam  cwrx = 2'b00, cwkeydown = 2'b01, cwkeyup = 2'b11;
@@ -1848,7 +1848,7 @@ always @(posedge clk_ad9866)
     endcase
     end
 
-assign cwkey = cwstate != cwrx;
+//assign cwkey = cwstate != cwrx;
 
 //assign io_db1_5 = cwkey;
 
@@ -1896,18 +1896,17 @@ Led_flash Flash_LED6(.clock(clk_ad9866), .signal(IF_SYNC_state == SYNC_RX_1_2), 
 
 // FIXME: Sequence power
 // FIXME: External TR won't work in low power mode
-wire FPGA_PTT_keyer;
 
 `ifdef BETA2
-assign pa_tr = FPGA_PTT_keyer & (IF_PA_enable | ~IF_TR_disable);
-assign pa_en = FPGA_PTT_keyer & IF_PA_enable;
-assign pwr_envpa = FPGA_PTT_keyer;
+assign pa_tr = FPGA_PTT & (IF_PA_enable | ~IF_TR_disable);
+assign pa_en = FPGA_PTT & IF_PA_enable;
+assign pwr_envpa = FPGA_PTT;
 `else
-assign pwr_envbias = FPGA_PTT_keyer & IF_PA_enable;
-assign pwr_envop = FPGA_PTT_keyer;
-assign pa_exttr = FPGA_PTT_keyer;
-assign pa_inttr = FPGA_PTT_keyer & (IF_PA_enable | ~IF_TR_disable);
-assign pwr_envpa = FPGA_PTT_keyer & IF_PA_enable;
+assign pwr_envbias = FPGA_PTT & IF_PA_enable;
+assign pwr_envop = FPGA_PTT;
+assign pa_exttr = FPGA_PTT;
+assign pa_inttr = FPGA_PTT & (IF_PA_enable | ~IF_TR_disable);
+assign pwr_envpa = FPGA_PTT & IF_PA_enable;
 `endif
 
 assign rffe_rfsw_sel = IF_PA_enable;
@@ -2108,8 +2107,8 @@ KeyerWrapper keyerwapper(
 	.IF_CW_PTT_delay(IF_CW_PTT_delay),
 	.C122_LR_data(C122_LR_data),     // AudioCodec hook in
 	.i2s_tx_data(i2s_tx_data),	      // AudioCodec hook out
-	.FPGA_PTT(FPGA_PTT),	            // PTT hook in
-	.exp_ptt_n(FPGA_PTT_keyer),      // PTT hook out (Active "H")
+	.FPGA_PTT(1'b0),	            // PTT hook in
+	.exp_ptt_n(CW_PTT),      // PTT hook out (Active "H")
 	.clean_cwkey(keyer_cwkey),       // CW lamp up/down control (Active "H")
 	.sidetone()                      // Squarewave ("L" when no sound)
 ) ;
@@ -2121,7 +2120,7 @@ KeyerWrapper keyerwapper(
 reg [31:0] freq_max; // max operation freq. 
 reg [31:0] freq_min; // min operation freq.
 always @ (posedge clk_ad9866) begin
-  if (FPGA_PTT_keyer)
+  if (FPGA_PTT)
     freq_max <= C122_phase_word_Tx ;
   else if ((IF_last_chan==5'b0) || (C122_sync_phase_word[0] >= C122_sync_phase_word[1]))
     freq_max <= C122_sync_phase_word[0];
@@ -2154,11 +2153,11 @@ end
 wire [6:0] select_LPF = Alex_manual ? Alex_manual_LPF : Alex_auto_LPF;  // to i2c
 wire [5:0] select_HPF = Alex_manual ? Alex_manual_HPF : Alex_auto_HPF;  // to i2c
 
-reg [1:0] FPGA_PTT_keyer_d ;
+reg [1:0] FPGA_PTT_d ;
 always @(posedge clk_ad9866)
-  FPGA_PTT_keyer_d <= {FPGA_PTT_keyer_d[0], FPGA_PTT_keyer}; // adjust timing
+  FPGA_PTT_d <= {FPGA_PTT_d[0], FPGA_PTT}; // adjust timing
 
-assign select_HPF_LPF ={select_HPF[5] & ~FPGA_PTT_keyer_d[1], // HPF 3.5MHz (Only Receiving)
+assign select_HPF_LPF ={select_HPF[5] & ~FPGA_PTT_d[1], // HPF 3.5MHz (Only Receiving)
                         select_LPF[5], // LPF 12/10m
                         select_LPF[6], // LPF 17/15m
                         select_LPF[0], // LPF 30/20m
