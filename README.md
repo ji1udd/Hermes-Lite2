@@ -165,6 +165,7 @@ If piHPSDR, ANT panel is used:
 Elecraft serial command "FA(VFO A frequency)"  is used to switch the LPFs in an external linear amplifier (eg. Hardrock-50) .
 The command is sent when HL Tx frequency is changed.
 Serial format : 9600bps, 8bit data, no-parity, 1-stop bit.
+Hardrock-50 setting : KX3 Serial="No", FT-817 Mode="No"
 
 <img src="compact-trx/powercontrol/docs/ExtAMP-ATU-Interface.jpg" width="480px">
 
