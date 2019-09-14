@@ -42,7 +42,7 @@ set_global_assignment -name DEVICE EP4CE22E22C8
 set_global_assignment -name TOP_LEVEL_ENTITY hermeslite
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 16.1.2
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:06:31  NOVEMBER 30, 2017"
-set_global_assignment -name LAST_QUARTUS_VERSION "16.1.2 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY build
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
@@ -211,14 +211,11 @@ set_location_assignment CLKCTRL_G19 -to ethtxext_clkmux_i|auto_generated|clkctrl
 set_location_assignment CLKCTRL_G15 -to ethtxint_clkmux_i|auto_generated|clkctrl1
 #set_location_assignment LCCOMB_X1_Y16_N4 -to altclkctrl:ethtxint_clkmux_i|altclkctrl_kct:auto_generated|outclk
 set_location_assignment LCCOMB_X28_Y1_N28 -to clock_ethrxint
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to io_db1_3
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to io_db1_4
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to io_db1_5
 set_global_assignment -name ENABLE_SIGNALTAP ON
 set_global_assignment -name USE_SIGNALTAP_FILE stp3.stp
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to io_led_d3
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to io_led_d5
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name VERILOG_FILE rtl/cdc_sync_rst.v
 set_global_assignment -name VERILOG_FILE rtl/ExtTuner.v
 set_global_assignment -name VERILOG_FILE rtl/ExtAmp.v
@@ -254,7 +251,6 @@ set_global_assignment -name TEXT_FILE Polyphase_FIR/coefL8.txt
 set_global_assignment -name MIF_FILE Polyphase_FIR/coefL8.mif
 set_global_assignment -name LICENSE_FILE Polyphase_FIR/coefL8.dat
 set_global_assignment -name VERILOG_FILE rtl/sp_rcv_ctrl.v
-set_global_assignment -name VERILOG_FILE rtl/Led_flash.v
 set_global_assignment -name VERILOG_FILE rtl/varcic.v
 set_global_assignment -name VERILOG_FILE rtl/cdc_mcp.v
 set_global_assignment -name VERILOG_FILE rtl/cdc_sync.v
@@ -307,4 +303,5 @@ set_global_assignment -name QIP_FILE cycloneip/div11_8.qip
 set_global_assignment -name QIP_FILE cycloneip/div18_9.qip
 set_global_assignment -name QIP_FILE cycloneip/sin8k8r.qip
 set_global_assignment -name QIP_FILE cycloneip/mult8_9.qip
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name SLD_FILE db/stp3_auto_stripped.stp

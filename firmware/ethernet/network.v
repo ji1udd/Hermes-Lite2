@@ -54,6 +54,9 @@ module network (
   output        speed_1gb,
   output        network_state,
   output [7:0]  network_status,
+  output        network_state_dhcp,
+  output        network_state_fixedip,
+  output [1:0]  network_speed,
 
   // phy
   output [3:0]  PHY_TX,
@@ -106,6 +109,10 @@ localparam
 
 
 // Set Tx_reset (no sdr send) if network_state is True
+assign network_state_dhcp = reg_network_state_dhcp;   // network_state is low when we have an IP address
+assign network_state_fixedip = reg_network_state_fixedip;
+reg reg_network_state_dhcp = 1'b1;           // this is used in network.v to hold code in reset when high
+reg reg_network_state_fixedip = 1'b1;
 assign network_state = reg_network_state;   // network_state is low when we have an IP address
 reg reg_network_state = 1'b1;           // this is used in network.v to hold code in reset when high
 reg [3:0] state = ST_START;
@@ -125,6 +132,8 @@ sync sync_inst2(.clock(tx_clock), .sig_in(state <= ST_PHY_SETTLE), .sig_out(tx_r
 always @(negedge clock_2_5MHz)
   //if connection lost, wait until reconnects
   if ((state > ST_PHY_CONNECT) && !phy_connected) begin
+    reg_network_state_dhcp <= 1'b1;
+    reg_network_state_fixedip <= 1'b1;
     reg_network_state <= 1'b1;
     state <= ST_PHY_CONNECT;
   end
@@ -192,6 +201,7 @@ always @(negedge clock_2_5MHz)
         local_ip <= ip_accept;
         dhcp_timer <= 22'd2_500_000;    // reset dhcp timers for next Renewal
         dhcp_seconds_timer <= 4'd0;
+        reg_network_state_dhcp <= 1'b0;    // Let network code know we have a valid IP address so can run when needed.
         reg_network_state <= 1'b0;    // Let network code know we have a valid IP address so can run when needed.
         if (lease == 32'd0)
           dhcp_renew_timer <= 43_200;  // use 43,200 seconds (12 hours) if no lease time set
@@ -222,12 +232,13 @@ always @(negedge clock_2_5MHz)
       if (dhcp_renew_timer == 0)
         state <= ST_DHCP_REQUEST;
       else
-        dhcp_renew_timer <= dhcp_renew_timer - 'd1;
+        dhcp_renew_timer <= dhcp_renew_timer - 18'h01;
     end
 
     // static ,DHCP or APIPA ip address obtained
     ST_RUNNING: begin
       dhcp_enable <= 1'b0;          // disable dhcp receive
+      reg_network_state_fixedip <= 1'b0;    // let network.v know we have a valid IP address
       reg_network_state <= 1'b0;    // let network.v know we have a valid IP address
     end
 
@@ -237,11 +248,11 @@ always @(negedge clock_2_5MHz)
       dhcp_enable <= 1'b0;        // disable dhcp receive
 
       if (dhcp_timer == 0) begin // another second has elapsed
-        dhcp_renew_timer <= dhcp_renew_timer - 'd1;
+        dhcp_renew_timer <= dhcp_renew_timer - 18'h01;
         dhcp_timer <= 22'd2_500_000;    // reset dhcp timer to one second
       end
       else begin
-        dhcp_timer <= dhcp_timer - 'd1;
+        dhcp_timer <= dhcp_timer - 22'h01;
       end
 
       if (dhcp_renew_timer == 0)
@@ -274,11 +285,11 @@ always @(negedge clock_2_5MHz)
 
       end
       else if (dhcp_renew_timer == 0) begin
-        dhcp_renew_timer <= 5 * 60; // time between renewal requests
+        dhcp_renew_timer <= 18'd300; // time between renewal requests
         state <= ST_DHCP_RENEW_WAIT;
       end
       else begin
-        dhcp_timer <= dhcp_timer - 'd1;
+        dhcp_timer <= dhcp_timer - 18'h01;
       end
 
     end
@@ -633,11 +644,11 @@ wire [47:0] udp_destination_mac_sync;
 wire [31:0] udp_destination_ip;
 wire [31:0] udp_destination_ip_sync;
 
-cdc_sync #(48)cdc_sync_inst1 (.siga(remote_mac), .rstb(0), .clkb(tx_clock), .sigb(remote_mac_sync));
-cdc_sync #(32)cdc_sync_inst2 (.siga(remote_ip), .rstb(0), .clkb(tx_clock), .sigb(remote_ip_sync));
-cdc_sync #(32) cdc_sync_inst7 (.siga(udp_destination_ip), .rstb(0), .clkb(tx_clock), .sigb(udp_destination_ip_sync));
-cdc_sync #(48) cdc_sync_inst8 (.siga(udp_destination_mac), .rstb(0), .clkb(tx_clock), .sigb(udp_destination_mac_sync));
-cdc_sync #(16) cdc_sync_inst9 (.siga(udp_destination_port), .rstb(0), .clkb(tx_clock), .sigb(udp_destination_port_sync));
+cdc_sync #(48)cdc_sync_inst1 (.siga(remote_mac), .rstb(1'b0), .clkb(tx_clock), .sigb(remote_mac_sync));
+cdc_sync #(32)cdc_sync_inst2 (.siga(remote_ip), .rstb(1'b0), .clkb(tx_clock), .sigb(remote_ip_sync));
+cdc_sync #(32) cdc_sync_inst7 (.siga(udp_destination_ip), .rstb(1'b0), .clkb(tx_clock), .sigb(udp_destination_ip_sync));
+cdc_sync #(48) cdc_sync_inst8 (.siga(udp_destination_mac), .rstb(1'b0), .clkb(tx_clock), .sigb(udp_destination_mac_sync));
+cdc_sync #(16) cdc_sync_inst9 (.siga(udp_destination_port), .rstb(1'b0), .clkb(tx_clock), .sigb(udp_destination_port_sync));
 
 
 //-----------------------------------------------------------------------------
@@ -710,6 +721,7 @@ rgmii_send rgmii_send_inst (
 //                              debug output
 //-----------------------------------------------------------------------------
 assign speed_1gb = speed_1gb_i; //phy_speed[1];
+assign network_speed = phy_speed;
 assign network_status = {phy_connected,phy_speed[1],phy_speed[0], udp_rx_active, udp_rx_enable, rgmii_rx_active, rgmii_tx_active, mac_rx_active};
 
 

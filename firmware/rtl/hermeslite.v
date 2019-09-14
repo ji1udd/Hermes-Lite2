@@ -101,12 +101,12 @@ module hermeslite(
   inout           io_scl2,
   inout           io_sda2,
   output          io_db1_2,       // BETA2,BETA3: io_db24  : (76) -> AK4951 SDTI
-  input           io_db1_3,       // BETA2,BETA3: io_db22_3: (77) <- CW Paddle DOT  (Pull Up)
+  output          io_db1_3,       // BETA2,BETA3: io_db22_3: (77) -> ExtAMP TxD (BAND)
   input           io_db1_4,       // BETA2,BETA3: io_db22_2: (80) <- PTT in         (Pull Up)
-  input           io_db1_5,       // BETA2,BETA3: io_cn4_6 : (83) <- CW paddle DASH (Pull Up)
+  output          io_db1_5,       // BETA2,BETA3: io_cn4_6 : (83) -> pa_exttr clone
   output          io_db1_6,       // BETA2,BETA3: io_cn4_7 : (85) -> AK4951 PDN
-  input           io_phone_tip,   // BETA2,BETA3: io_cn4_2 : (91)
-  input           io_phone_ring,  // BETA2,BETA3: io_cn4_3 : (90)
+  input           io_phone_tip,   // BETA2,BETA3: io_cn4_2 : (91) <- CW Paddle DOT
+  input           io_phone_ring,  // BETA2,BETA3: io_cn4_3 : (90) <- CW paddle DASH
   input           io_tp2,
   
 `ifndef BETA2
@@ -423,6 +423,8 @@ assign ptt_i = io_db1_4;
 
 
 wire [7:0] network_status;
+logic           network_state_dhcp, network_state_fixedip;
+logic [ 1:0]    network_speed;
 
 wire dst_unreachable;
 wire udp_tx_request;
@@ -477,6 +479,9 @@ network network_inst(
   .speed_1gb(speed_1gb),
   .network_state(network_state),
   .network_status(network_status),
+  .network_state_dhcp(network_state_dhcp),
+  .network_state_fixedip(network_state_fixedip),
+  .network_speed(network_speed),
 
   .PHY_TX(phy_tx),
   .PHY_TX_EN(phy_tx_en),
@@ -1856,15 +1861,15 @@ always @(posedge clk_ad9866)
 //  Debounce dot key - active low
 //---------------------------------------------------------
 
-//debounce de_dot(.clean_pb(clean_dot), .pb(~KEY_DOT), .clk(clk_ad9866));
-assign clean_dot = 0;
+debounce de_dot(.clean_pb(clean_dot), .pb(~io_phone_tip), .clk(clk_ad9866));
+//assign clean_dot = 0;
 
 //---------------------------------------------------------
 //  Debounce dash key - active low
 //---------------------------------------------------------
 
-//debounce de_dash(.clean_pb(clean_dash), .pb(~KEY_DASH), .clk(clk_ad9866));
-assign clean_dash = 0;
+debounce de_dash(.clean_pb(clean_dash), .pb(~io_phone_ring), .clk(clk_ad9866));
+//assign clean_dash = 0;
 
 
 
@@ -1874,16 +1879,16 @@ debounce de_ptt(.clean_pb(clean_ptt), .pb(~ptt_i), .clk(clk_ad9866));
 
 
 // Really 0.16 seconds at Hermes-Lite 61.44 MHz clock
-localparam half_second = 24'd10000000; // at 48MHz clock rate
+//localparam half_second = 24'd10000000; // at 48MHz clock rate
 
-Led_flash Flash_LED0(.clock(clk_ad9866), .signal(rxclipp), .LED(leds[0]), .period(half_second));
-Led_flash Flash_LED1(.clock(clk_ad9866), .signal(rxgoodlvlp), .LED(leds[1]), .period(half_second));
-Led_flash Flash_LED2(.clock(clk_ad9866), .signal(rxgoodlvln), .LED(leds[2]), .period(half_second));
-Led_flash Flash_LED3(.clock(clk_ad9866), .signal(rxclipn), .LED(leds[3]), .period(half_second));
+//Led_flash Flash_LED0(.clock(clk_ad9866), .signal(rxclipp), .LED(leds[0]), .period(half_second));
+//Led_flash Flash_LED1(.clock(clk_ad9866), .signal(rxgoodlvlp), .LED(leds[1]), .period(half_second));
+//Led_flash Flash_LED2(.clock(clk_ad9866), .signal(rxgoodlvln), .LED(leds[2]), .period(half_second));
+//Led_flash Flash_LED3(.clock(clk_ad9866), .signal(rxclipn), .LED(leds[3]), .period(half_second));
 
-Led_flash Flash_LED4(.clock(clk_ad9866), .signal(this_MAC), .LED(leds[4]), .period(half_second));
-Led_flash Flash_LED5(.clock(clk_ad9866), .signal(run_sync), .LED(leds[5]), .period(half_second));
-Led_flash Flash_LED6(.clock(clk_ad9866), .signal(IF_SYNC_state == SYNC_RX_1_2), .LED(leds[6]), .period(half_second));
+//Led_flash Flash_LED4(.clock(clk_ad9866), .signal(this_MAC), .LED(leds[4]), .period(half_second));
+//Led_flash Flash_LED5(.clock(clk_ad9866), .signal(run_sync), .LED(leds[5]), .period(half_second));
+//Led_flash Flash_LED6(.clock(clk_ad9866), .signal(IF_SYNC_state == SYNC_RX_1_2), .LED(leds[6]), .period(half_second));
 
 
 //assign io_led_d2 = leds[4];
@@ -1896,6 +1901,7 @@ Led_flash Flash_LED6(.clock(clk_ad9866), .signal(IF_SYNC_state == SYNC_RX_1_2), 
 
 // FIXME: Sequence power
 // FIXME: External TR won't work in low power mode
+// wire FPGA_PTT_keyer;
 
 `ifdef BETA2
 assign pa_tr = FPGA_PTT & (IF_PA_enable | ~IF_TR_disable);
@@ -2081,8 +2087,8 @@ assign IF_mic_Data = C122_mic_data;
 //      IF_Keyer_Mode: 00=Straight, 10=Iambic, 01=PracticeMode, 11=Not defined
 // ============================================================================== //
 
-wire   paddle_dot_n  = io_db1_3; // active "L"
-wire   paddle_dash_n = io_db1_5; // active "L"  
+wire   paddle_dot_n  = io_phone_tip;  // active "L"
+wire   paddle_dash_n = io_phone_ring; // active "L"  
 
 wire   host_dot_n  = ~(IF_I_PWM[2] & IF_CW_internal) ; // Active "L"
 wire   host_dash_n = ~(IF_I_PWM[1] & IF_CW_internal) ; // Active "L"
@@ -2206,6 +2212,7 @@ ExtAmp ExtAmp(
   .freq(TxFreq),
   .uart_txd(ExtAMP_txd)  // BAND (TxD)
 ) ;
+assign io_db1_3 = ExtAMP_txd ;
 
 // ============================================================================== //
 //     External ATU Control 
@@ -2221,60 +2228,160 @@ ExtTuner ExtTuner(
 );
 
 // ============================================================================== //
+//     EXTTR clone on DB1-5
+// ============================================================================== //
+assign io_db1_5 = pa_exttr ;
+
+// ============================================================================== //
 //     LED PORT function
 // ============================================================================== //
 reg [2:0] io_check;
-reg ExtAMP_disable;
 reg ExtTUNER_disable;
 
 always @(posedge clk_ad9866 or negedge resetcounter[15]) begin
   if (!resetcounter[15]) begin
     io_check         <= 3'b0;
-    ExtAMP_disable   <= 1'b0;
     ExtTUNER_disable <= 1'b0;
   end else begin
     io_check <= {io_check[1:0],1'b1};
-    if (io_check[2:1]==2'b01) begin      // LED Port D3/D5 check
-      ExtAMP_disable   <= io_led_d3;     // if "H", ExtAMP circuit is not installed
+    if (io_check[2:1]==2'b01) begin      // check LED Port D5
       ExtTUNER_disable <= io_led_d5;     // if "H", ExtTUNER circuit is not installed
     end
   end
 end
 
-reg  io_led_d2_o;
-reg  io_led_d3_o;
-reg  io_led_d4_o;
-reg  io_led_d5_o;
-
-always @(posedge clk_ad9866)
-  case({ExtAMP_disable,ExtTUNER_disable})
-    2'b00: begin
-             io_led_d2_o <= ExtAMP_txd;
-             io_led_d4_o <= ATU_Start;
-           end
-    2'b01: begin
-             io_led_d2_o <= ExtAMP_txd;
-             io_led_d4_o <= leds[4] & leds[5];  // this_MAC + run_sync
-             io_led_d5_o <= leds[0] & leds[3];  // rxclipp  + rxclipn
-           end
-    2'b10: begin
-             io_led_d2_o <= leds[4] & leds[5];  // this_MAC + run_sync
-             io_led_d3_o <= leds[0] & leds[3];  // rxclipp  + rxclipn
-             io_led_d4_o <= ATU_Start;
-           end
-    default: begin
-             io_led_d2_o <= leds[4];            // this_MAC
-             io_led_d3_o <= leds[5];            // run_sync
-             io_led_d4_o <= leds[0];            // rxclipp
-             io_led_d5_o <= leds[3];            // rxclipn
-           end
-  endcase
-
-assign io_led_d2 = io_led_d2_o;
-assign io_led_d3 = ExtAMP_disable   ? io_led_d3_o : 1'bz;
-assign io_led_d4 = io_led_d4_o;
-assign io_led_d5 = ExtTUNER_disable ? io_led_d5_o : 1'bz;
-
 // ============================================================================== //
+logic rxclrstatus = 1'b0;
+always @(posedge clock_2_5MHz) rxclrstatus <= ~rxclrstatus;
+
+logic rxclrstatus_ad9866sync;
+sync_pulse sync_rxclrstatus_ad9866 (
+  .clock(clk_ad9866),
+  .sig_in(rxclrstatus),
+  .sig_out(rxclrstatus_ad9866sync)
+);
+
+logic rxclip    = 1'b0;
+logic rxgoodlvl = 1'b0;
+always @(posedge clk_ad9866) begin
+  if (rxclrstatus_ad9866sync) rxclip <= 1'b0;
+  if (rxclipp | rxclipn) rxclip <= 1'b1;
+end
+
+always @(posedge clk_ad9866) begin
+  if (rxclrstatus_ad9866sync) rxgoodlvl <= 1'b0;
+  if (rxgoodlvlp | rxgoodlvln) rxgoodlvl <= 1'b1;
+end
+
+logic rxclip_iosync;
+logic rxgoodlvl_iosync;
+sync syncio_rxclip (
+  .clock(clock_2_5MHz),
+  .sig_in(rxclip),
+  .sig_out(rxclip_iosync)
+);
+
+sync syncio_rxgoodlvl (
+  .clock(clock_2_5MHz),
+  .sig_in(rxgoodlvl),
+  .sig_out(rxgoodlvl_iosync)
+);
+
+logic [11:0]  millisec_count;
+logic         millisec_pulse;
+logic [8:0]   led_count;
+logic         led_saturate;
+always @(posedge clock_2_5MHz) begin
+  if (millisec_count == 12'd2500) begin
+    millisec_count <= 12'b0;
+    millisec_pulse <= 1'b1;
+    led_count <= led_count + 1'b1;
+  end else begin
+    millisec_count <= millisec_count + 1'b1;
+    millisec_pulse <= 1'b0;
+  end
+end
+assign led_saturate = &led_count[5:0];
+
+logic led_d4;
+logic led_d5;
+led_flash led_rxgoodlvl(.clk(clock_2_5MHz), .cnt(led_saturate), .sig(rxgoodlvl_iosync), .led(led_d4));
+led_flash led_rxclip   (.clk(clock_2_5MHz), .cnt(led_saturate), .sig(rxclip_iosync),    .led(led_d5));
+
+logic [5:0] fast_clk_cnt;
+always @(posedge clk_ad9866) begin
+  if (millisec_count[1] & ~(&fast_clk_cnt)) fast_clk_cnt <= fast_clk_cnt + 6'h01;
+  else if (millisec_count[0]) fast_clk_cnt <= 6'h00;
+end
+
+logic good_fast_clk;
+always @(posedge clock_2_5MHz) begin
+  if (millisec_count[1:0] == 2'b00) good_fast_clk <= ~(&fast_clk_cnt);
+end
+
+wire have_fixed_ip = ~network_state_fixedip ;
+wire have_dhcp_ip  = ~network_state_dhcp ;
+
+assign io_led_d2 = run ? ~run      : ~(ethup & led_count[8]);
+assign io_led_d3 = run ? ~FPGA_PTT : ~((have_fixed_ip & led_count[8]) | have_dhcp_ip); 
+assign io_led_d4 = ExtTUNER_disable ? (run ? led_d4 : ~(((network_speed == 2'b01) & led_count[8]) | network_speed == 2'b10)):
+                                      ATU_Start;
+assign io_led_d5 = ExtTUNER_disable ? (run ? led_d5 : ~(ad9866pll_locked & good_fast_clk)):
+                                      1'bz ;
+
 
 endmodule
+
+// ============================================================================== //
+//     led_flash ( source: official gateware 20190907 control.v)
+// ============================================================================== //
+
+module led_flash (
+  clk,
+  cnt,
+  sig,
+  led
+);
+input       clk;
+input       cnt;
+input       sig;
+output      led;
+
+localparam  STATE_CLR   = 2'b00,
+            STATE_SET   = 2'b01,
+            STATE_WAIT1 = 2'b10,
+            STATE_WAIT2 = 2'b11;
+
+logic [1:0] state = STATE_CLR;
+logic [1:0] state_next;
+
+always @(posedge clk) state <= state_next;
+
+// LED remains on for 2-3 ticks of cnt
+always @* begin
+  state_next = state;
+  
+  case (state)
+    STATE_CLR: begin
+      led = 1'b1; // 1 clears LED
+      if (sig) state_next = STATE_SET;
+    end
+
+    STATE_SET: begin
+      led = 1'b0;
+      if (cnt) state_next = STATE_WAIT1;
+    end 
+
+    STATE_WAIT1: begin
+      led = 1'b0;
+      if (cnt) state_next = STATE_WAIT2;
+    end
+
+    STATE_WAIT2: begin
+      led = 1'b0;
+      if (cnt) state_next = STATE_CLR;
+    end
+  endcase 
+end 
+
+endmodule 
