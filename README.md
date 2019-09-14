@@ -1,7 +1,7 @@
 # HL Ver2 Beta5 or later Companion Board V3.0 gateware
 ## Hardware : [_WA2T 's Companion Board V3.0_](https://github.com/WA2T/Hermes-Lite2) 
 
-## Changes from  [CTRX_HL2b5 gateware] (https://github.com/ji1udd/Hermes-Lite2/tree/CTRX_HL2b5) 
+## Changes from  [_CTRX_HL2b5 gateware_] (https://github.com/ji1udd/Hermes-Lite2/tree/CTRX_HL2b5) 
 
 ### I/O port assignment
 - DB1-3 :  ExtAMP TxD (output)
