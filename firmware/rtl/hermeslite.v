@@ -1249,7 +1249,8 @@ assign IO6 = 1'b1;
 assign IO8 = 1'b1;
 
 //allow overflow message during tx to set pure signal feedback level
-assign OVERFLOW = (~leds[0] | ~leds[3]) ;
+//assign OVERFLOW = (~leds[0] | ~leds[3]) ;
+assign OVERFLOW = rxclip ;
 
 wire CW_PTT;
 Hermes_Tx_fifo_ctrl #(RX_FIFO_SZ, TX_FIFO_SZ) TXFC
