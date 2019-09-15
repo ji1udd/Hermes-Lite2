@@ -14,4 +14,5 @@
 - If additional ExtATU interface circuit is installed, D4 and D5 ports are used as ATU controll ports.
 
 ## Software setting
-- [_PowerSDR setting_](V3_Companion/V3_PowerSDR_Setting.pdf)
+- [_PowerSDR_](V3_Companion/V3_PowerSDR_Setting.pdf)
+- [_piHPSDR_](V3_Companion/V3_piHPSDR_Setting.pdf)
