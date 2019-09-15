@@ -12,3 +12,6 @@
 ### LED Ports
 - D2,D3,D4 and D5 functions are basically same as official gateware 20190907.
 - If additional ExtATU interface circuit is installed, D4 and D5 ports are used as ATU controll ports.
+
+## Software setting
+- [_PowerSDR setting_](V3_Companion/V3_PowerSDR_Setting.pdf)
