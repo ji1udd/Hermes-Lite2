@@ -85,8 +85,8 @@ module hermeslite(
 `endif
 
   // IO
-  output          io_led_d2,      // LED or ExtAMP TxD  (BAND)
-  inout           io_led_d3,      // LED or ExtAMP RxD  (Pull up)
+  output          io_led_d2,      // LED
+  output          io_led_d3,      // LED
   output          io_led_d4,      // LED or ATU Start
   inout           io_led_d5,      // LED or ATU Status  (Pull Up)
   input           io_lvds_rxn,
@@ -2211,6 +2211,7 @@ wire ExtAMP_txd;
 ExtAmp ExtAmp(
   .clk(clk_ad9866),
   .freq(TxFreq),
+  .ptt(FPGA_PTT),
   .uart_txd(ExtAMP_txd)  // BAND (TxD)
 ) ;
 assign io_db1_3 = ExtAMP_txd ;

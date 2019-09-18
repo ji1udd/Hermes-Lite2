@@ -16,13 +16,14 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
-// (C) Takashi Komatsumoto, JI1UDD 2018
+// (C) Takashi Komatsumoto, JI1UDD 2018, 2019
 
 `timescale 1 ns/100 ps
 
 module ExtAmp (
   input        clk,
   input [31:0] freq,       // less than 100,000,000Hz
+  input        ptt,
   output       uart_txd    // data1: High, data0: Low
 );
 
@@ -122,11 +123,17 @@ wire cmd_start = (freq_prev != freq) ;
 
 reg [3:0]  cmd_cnt = 4'd0;
 wire [6:0] cmd_pos = 7'd111 - ((cmd_cnt - 1'b1) << 3) ;
+reg detect_ptt = 1'b0 ;
+reg cmd_start_2nd = 1'b0 ;
 
 always @ (posedge clk) begin
   if (cmd_cnt==4'd0) begin
     cmd_pending <= 1'b0 ;
-    if (cmd_start) begin
+    if (ptt) begin
+      detect_ptt <= 1'b1;
+    end
+    if (cmd_start | cmd_start_2nd) begin
+      cmd_start_2nd <= 1'b0;
       freq_bin <= freq ;
       cv_start <= 1'b1 ;
       cmd_cnt <= cmd_cnt + 1'b1 ;
@@ -143,6 +150,10 @@ always @ (posedge clk) begin
     if (uart_tx_end) begin
 	   if (cmd_cnt==4'd15) begin
 		  cmd_cnt <= 4'd0;
+          if (detect_ptt) begin
+            cmd_start_2nd <= 1'b1;
+            detect_ptt <= 1'b0;
+          end
 		end else begin
         uart_tx_data <= cmd [cmd_pos -: 8] ;
         uart_tx_start <= 1'b1 ;
