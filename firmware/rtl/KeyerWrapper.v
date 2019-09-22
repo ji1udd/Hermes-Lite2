@@ -41,7 +41,9 @@ module KeyerWrapper (
 	input				FPGA_PTT,				// PTT hook in
    output			exp_ptt_n,				// PTT hook out
 	output			clean_cwkey,			// CW lamp up/down control (Active "H")
-	output			sidetone					// Piezo sounder ("L" when no sound)
+	output			sidetone,				// Piezo sounder ("L" when no sound)
+	output			TxEN_start,
+	output			TxEN_end
 ) ;
 
 // Paddle input
@@ -101,6 +103,8 @@ Keyer keyer(
 	.ToneFreq(IF_CW_Tone_Freq), 			// for Sidetone Audio frequency
 	.audiovolume(IF_CW_Sidetone_Vol),	// Audio volume
 	.sidetone_codec(sidetone_codec),		// Audio codec
-	.do1k(do1k)									// 1ms timing
+	.do1k(do1k),								// 1ms timing
+	.TxEN_start(TxEN_start),
+	.TxEN_end(TxEN_end)
 ) ;
 endmodule 

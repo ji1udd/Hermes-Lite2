@@ -462,8 +462,8 @@ wire have_sp_data;
 // Reset fifo when !run so the data always starts at a known state.
 
 wire C122_rst;
-//cdc_sync #(1) reset_C122 (.siga(rst), .rstb(rst), .clkb(clock_76p8_mhz), .sigb(C122_rst));
-cdc_sync_rst reset_C122 (.rsta(rst), .clkb(clock_76p8_mhz), .rstb(C122_rst));
+cdc_sync #(1) reset_C122 (.siga(rst), .rstb(rst), .clkb(clock_76p8_mhz), .sigb(C122_rst));
+//cdc_sync_rst reset_C122 (.rsta(rst), .clkb(clock_76p8_mhz), .rstb(C122_rst));
 
 SP_fifo  SPF (.aclr(C122_rst | !run_sync_76p8), .wrclk (clock_76p8_mhz), .rdclk(clock_12_5MHz),
              .wrreq (sp_fifo_wrreq), .data ({{4{temp_ADC[11]}},temp_ADC}), .rdreq (sp_fifo_rdreq),
@@ -1761,6 +1761,9 @@ Led_flash Flash_LED6(.clock(clock_76p8_mhz), .signal(IF_SYNC_state == SYNC_RX_1_
 
 logic wb_ack_ad9866;
 
+wire CW_TxEN_start;
+wire CW_TxEN_end;
+
 ad9866 #(.WB_DATA_WIDTH(WB_DATA_WIDTH), .WB_ADDR_WIDTH(WB_ADDR_WIDTH)) ad9866_i
 (
   .clk(clock_76p8_mhz),
@@ -1770,6 +1773,9 @@ ad9866 #(.WB_DATA_WIDTH(WB_DATA_WIDTH), .WB_ADDR_WIDTH(WB_ADDR_WIDTH)) ad9866_i
   .sdo(1'b0),
   .sen_n(rffe_ad9866_sen_n),
   .dataout(),
+
+  .rx_pwr_off(~IF_Pure_signal & CW_TxEN_start),
+  .rx_pwr_on(~IF_Pure_signal & CW_TxEN_end),
 
   .wbs_adr_i(wb_adr),
   .wbs_dat_i(wb_dat),
@@ -2001,7 +2007,9 @@ KeyerWrapper keyerwapper(
 	.FPGA_PTT(1'b0),	            // PTT hook in
 	.exp_ptt_n(CW_PTT),      // PTT hook out (Active "H")
 	.clean_cwkey(keyer_cwkey),       // CW lamp up/down control (Active "H")
-	.sidetone()                      // Squarewave ("L" when no sound)
+	.sidetone(),                     // Squarewave ("L" when no sound)
+	.TxEN_start(CW_TxEN_start),
+	.TxEN_end(CW_TxEN_end)
 ) ;
 
 // ============================================================================== //
