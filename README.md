@@ -13,6 +13,10 @@
 - D2,D3,D4 and D5 functions are basically same as official gateware 20190907.
 - If additional ExtATU interface circuit is installed, D4 and D5 ports are used as ATU controll ports.
 
+### Improvement of "Low RX sensitivity after CW Tx" (22 Sep. 2019)
+- If PureSignal is set off, AD9866 RxPGA is powered down while CW Tx.
+- If on, AD9866 RxPGA is always powered up. (same as previous version)
+
 ## Software setting
 - [_PowerSDR_](V3_Companion/V3_PowerSDR_Setting.pdf)
 - [_piHPSDR_](V3_Companion/V3_piHPSDR_Setting.pdf)

@@ -38,7 +38,9 @@ module Keyer (
 	input  [11:0]	ToneFreq, 			// for Sidetone Audio frequency
 	input  [ 7:0]  audiovolume,		// for Sidetone Audio volume
 	output [15:0]	sidetone_codec,	// to Audio codec
-	output         do1k					// 1ms timing
+	output         do1k,				// 1ms timing
+	output	reg	TxEN_start,
+	output	reg	TxEN_end
 ) ;
 
 // -------------------
@@ -138,9 +140,11 @@ always @(posedge clk or negedge rstb)
           if (DotOn) begin
             state <= STATE_DOT_PRE ;
             state_delay <= RELAY_DLY ;
+            TxEN_start <= 1'b1;
           end else if (DashOn) begin
             state <= STATE_DASH_PRE ;
             state_delay <= RELAY_DLY ;
+            TxEN_start <= 1'b1;
           end 			
         end
 
@@ -218,6 +222,7 @@ always @(posedge clk or negedge rstb)
         begin
           if (state_delay==10'b0) begin
             state <= STATE_RX ;
+            TxEN_end <= 1'b1;
           end else begin
             if (DotOn) begin
               state <= STATE_DOT_ON ;
@@ -231,6 +236,9 @@ always @(posedge clk or negedge rstb)
           end
         end
     endcase
+  end else begin
+    TxEN_start <= 1'b0;
+    TxEN_end <= 1'b0;
   end
 
 // --------------

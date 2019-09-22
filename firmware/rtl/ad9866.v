@@ -27,6 +27,9 @@ module ad9866 (
   rx_data,
   tx_en,
 
+  rx_pwr_off,
+  rx_pwr_on,
+
   rffe_ad9866_rst_n,
   rffe_ad9866_tx,
   rffe_ad9866_rx,
@@ -65,6 +68,9 @@ input             rst_n;
 input   [11:0]    tx_data;
 output  [11:0]    rx_data;
 input             tx_en;
+
+input             rx_pwr_off;
+input             rx_pwr_on;
 
 output            rffe_ad9866_rst_n;
 `ifdef HALFDUPLEX
@@ -126,8 +132,8 @@ reg     [8:0]     initarray [19:0];
 
 
 // Wishbone slave
-logic [1:0]       wbs_state = 1'b0;
-logic [1:0]       wbs_state_next;
+logic [2:0]       wbs_state = 3'b0;
+logic [2:0]       wbs_state_next;
 logic [3:0]       tx_gain = 4'h0;
 logic [3:0]       tx_gain_next;
 logic [6:0]       rx_gain = 7'b1000000;
@@ -135,6 +141,9 @@ logic [6:0]       rx_gain_next;
 
 logic             cmd_ack; 
 logic [12:0]      cmd_data;
+
+logic             set_rx_pwr;
+
 
 initial begin
   // First bit is 1'b1 for write enable to that address
@@ -161,11 +170,12 @@ initial begin
 end
 
 localparam 
-  WBS_IDLE    = 2'b00,
-  WBS_TXGAIN  = 2'b01,
-  WBS_RXGAIN  = 2'b11,
-  WBS_WRITE   = 2'b10;
-
+  WBS_IDLE    = 3'b000,
+  WBS_TXGAIN  = 3'b001,
+  WBS_RXGAIN  = 3'b011,
+  WBS_WRITE   = 3'b010,
+  SET_RXPWR_OFF = 3'b100,
+  SET_RXPWR_ON  = 3'b101;
 
 assign rffe_ad9866_rst_n = rst_n;
 
@@ -248,6 +258,7 @@ always @* begin
   rx_gain_next = rx_gain;
   cmd_ack = 1'b0;
   cmd_data  = {wbs_dat_i[20:16],wbs_dat_i[7:0]};
+  set_rx_pwr = 1'b0;
 
   case(wbs_state)
 
@@ -276,7 +287,11 @@ always @* begin
           default: wbs_state_next = wbs_state;
 
         endcase 
-      end        
+      end else if (rx_pwr_off & rffe_ad9866_sen_n) begin
+        wbs_state_next = SET_RXPWR_OFF;
+      end else if (rx_pwr_on & rffe_ad9866_sen_n) begin
+        wbs_state_next = SET_RXPWR_ON;
+      end
     end
 
     WBS_TXGAIN: begin
@@ -298,6 +313,18 @@ always @* begin
       wbs_state_next = WBS_IDLE;
     end
 
+    SET_RXPWR_OFF: begin
+      set_rx_pwr   = 1'b1;
+      cmd_data = {5'h01,8'h01};
+      wbs_state_next = WBS_IDLE;
+    end
+	 
+	 SET_RXPWR_ON: begin
+      set_rx_pwr   = 1'b1;
+      cmd_data = {5'h01,8'h00};
+      wbs_state_next = WBS_IDLE;
+    end
+	 
   endcase
 end
 
@@ -335,7 +362,7 @@ always @* begin
                 start = initarrayv[8];
             end
         end else begin
-            start = cmd_ack;
+            start = cmd_ack | set_rx_pwr;
         end
     end
 end

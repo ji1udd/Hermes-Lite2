@@ -644,8 +644,8 @@ wire have_sp_data;
 // Reset fifo when !run so the data always starts at a known state.
 
 wire C122_rst;
-//cdc_sync #(1) reset_C122 (.siga(rst), .rstb(rst), .clkb(clk_ad9866), .sigb(C122_rst));
-cdc_sync_rst reset_C122 (.rsta(rst), .clkb(clk_ad9866), .rstb(C122_rst));
+cdc_sync #(1) reset_C122 (.siga(rst), .rstb(rst), .clkb(clk_ad9866), .sigb(C122_rst));
+//cdc_sync_rst reset_C122 (.rsta(rst), .clkb(clk_ad9866), .rstb(C122_rst));
 
 SP_fifo  SPF (.aclr(C122_rst | !run_sync), .wrclk (clk_ad9866), .rdclk(clock_ethtxint),
              .wrreq (sp_fifo_wrreq), .data ({{4{rx_data[11]}},rx_data}), .rdreq (sp_fifo_rdreq),
@@ -677,6 +677,9 @@ logic 			wb_ack_ad9866;
 logic [11:0]  	rx_data;
 logic [11:0]  	tx_data;
 
+wire CW_TxEN_start;
+wire CW_TxEN_end;
+
 ad9866 ad9866_i (
   .clk_ad9866(clk_ad9866),
   .clk_ad9866_2x(clk_ad9866_2x),
@@ -685,6 +688,9 @@ ad9866 ad9866_i (
   .tx_data(tx_data),
   .rx_data(rx_data),
   .tx_en(FPGA_PTT | VNA),
+
+  .rx_pwr_off(~IF_Pure_signal & CW_TxEN_start),
+  .rx_pwr_on(~IF_Pure_signal & CW_TxEN_end),
 
   .rffe_ad9866_rst_n(rffe_ad9866_rst_n),
   .rffe_ad9866_tx(rffe_ad9866_tx),
@@ -2117,7 +2123,9 @@ KeyerWrapper keyerwapper(
 	.FPGA_PTT(1'b0),	            // PTT hook in
 	.exp_ptt_n(CW_PTT),      // PTT hook out (Active "H")
 	.clean_cwkey(keyer_cwkey),       // CW lamp up/down control (Active "H")
-	.sidetone()                      // Squarewave ("L" when no sound)
+	.sidetone(),                     // Squarewave ("L" when no sound)
+	.TxEN_start(CW_TxEN_start),
+	.TxEN_end(CW_TxEN_end)
 ) ;
 
 // ============================================================================== //
