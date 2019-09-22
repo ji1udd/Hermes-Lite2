@@ -2083,6 +2083,7 @@ end
 ExtAmp ExtAmp(
   .clk(clock_76p8_mhz),
   .freq(TxFreq),
+  .ptt(FPGA_PTT),
   .uart_txd(io_led_d2)  // BAND (TxD)
 ) ;
 
