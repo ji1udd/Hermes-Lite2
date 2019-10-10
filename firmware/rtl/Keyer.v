@@ -38,9 +38,10 @@ module Keyer (
 	input  [11:0]	ToneFreq, 			// for Sidetone Audio frequency
 	input  [ 7:0]  audiovolume,		// for Sidetone Audio volume
 	output [15:0]	sidetone_codec,	// to Audio codec
-	output         do1k,				// 1ms timing
+//	output         do1k,				// 1ms timing
 	output	reg	TxEN_start,
-	output	reg	TxEN_end
+	output	reg	TxEN_end,
+	input				keyermode			// 0:iambic, 1: straight
 ) ;
 
 // -------------------
@@ -65,7 +66,7 @@ localparam ADJKEYTIM		= 3'd2	;	// 2ms, Adjust Key capture timing
 // -------------------
 //  Declare Reg, Wire
 // -------------------
-//wire do1k ; 								// 1kHz(1ms) interval
+wire do1k ; 								// 1kHz(1ms) interval
 reg [2:0] state ;							// Keyer state
 reg [9:0] state_delay ;					// state shift delay counter
 reg TxEN ;									// Tx/Rx relay control
@@ -107,22 +108,42 @@ always @(posedge clk or negedge rstb)
   end
 
 reg [3:0] dashcnt ;
-wire DashOn = (dashcnt == REJECTCNT) ;
+reg       StraightOn = 1'b0 ;
+wire DashOn = keyermode ? StraightOn : (dashcnt == REJECTCNT) ;
 always @(posedge clk or negedge rstb)
   if (!rstb) begin
     dashcnt <= 4'b0 ; 
   end else if (do1k) begin
-    if (state==STATE_DASH_ON)
-	   dashcnt <= 4'b0 ;
-	 else if (!((state==STATE_DASH_OFF)&&(state_delay >= ((DotOnTime>>2)+ADJKEYTIM)))) begin
-      if (dashcnt < REJECTCNT)
-        if (!paddle_dash_n)
+    if (!keyermode) begin						// 0: iambic
+	   StraightOn <= 1'b0 ;
+      if (state==STATE_DASH_ON) begin
+	     dashcnt <= 4'b0 ;
+	   end else if (!((state==STATE_DASH_OFF)&&(state_delay >= ((DotOnTime>>2)+ADJKEYTIM)))) begin
+        if (dashcnt < REJECTCNT) begin
+          if (!paddle_dash_n) begin
+            dashcnt <= dashcnt + 1'b1 ;
+		    end else begin
+		      dashcnt <= 4'b0 ;
+		    end
+	     end
+      end
+	   if ((state==STATE_DOT_ON) && (state_delay >= ((DotOnTime>>2)+ADJKEYTIM))) begin
+        dashcnt <= 4'b0 ;
+      end
+    end else if (!paddle_dash_n) begin				// 1: straight
+      if (!DashOn) begin
+        if (dashcnt < REJECTCNT) begin
           dashcnt <= dashcnt + 1'b1 ;
-		  else
-		    dashcnt <= 4'b0 ;
-    end
-	 if ((state==STATE_DOT_ON) && (state_delay >= ((DotOnTime>>2)+ADJKEYTIM))) begin
-      dashcnt <= 4'b0 ;
+		  end else begin
+		    StraightOn <= 1'b1 ;
+		  end
+		end
+    end else if (DashOn) begin
+      if (dashcnt != 4'b0) begin
+        dashcnt <= dashcnt - 1'b1 ;
+		end else begin
+		  StraightOn <= 1'b0 ;
+		end
     end
   end
 
@@ -194,11 +215,17 @@ always @(posedge clk or negedge rstb)
 
       STATE_DASH_ON :
         begin
-          if (state_delay==10'b0) begin
-            state <= STATE_DASH_OFF ;
-            state_delay <= DotOnTime ;       
-          end else
-            state_delay <= state_delay - 1'b1 ;
+          if (!keyermode) begin						// 0: iambic
+            if (state_delay==10'b0) begin
+              state <= STATE_DASH_OFF ;
+              state_delay <= DotOnTime ;       
+            end else begin
+              state_delay <= state_delay - 1'b1 ;
+				end
+          end else if (!DashOn) begin				// 1: straight
+              state <= STATE_TR_DLY ;
+              state_delay <= BrakeinTime ;
+          end
         end
 
       STATE_DASH_OFF :

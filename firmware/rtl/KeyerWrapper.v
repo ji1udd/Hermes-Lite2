@@ -47,25 +47,8 @@ module KeyerWrapper (
 ) ;
 
 // Paddle input
-wire paddle_dot_n_x  = (IF_CW_keys_reversed==1'b1)? paddle_dash_n : paddle_dot_n ;
-wire paddle_dash_n_x = (IF_CW_keys_reversed==1'b1)? paddle_dot_n : paddle_dash_n ;
-wire paddle_dot_n_b  = (IF_Keyer_Mode==2'd0) | paddle_dot_n_x  ;
-wire paddle_dash_n_b = (IF_Keyer_Mode==2'd0) | paddle_dash_n_x ;
-
-// Debounce for Straight Key (5ms)
-wire do1k ;
-wire rstb = ~IF_rst ;
-reg [3:0] chatcnt ;
-always @(posedge IF_clk or negedge rstb)
-  if (!rstb) begin
-    chatcnt <= 4'b0 ; 
-  end else if (do1k) begin
-    if (paddle_dot_n_x)
-      chatcnt <= 4'b0 ;
-    else if (chatcnt < 4'd5)	
-      chatcnt <= chatcnt + 1'b1 ;
-  end
-wire debounced_cwkey_i = (chatcnt == 4'd5) ; 
+wire paddle_dot_n_b  = (IF_CW_keys_reversed==1'b1)? paddle_dash_n : paddle_dot_n ;
+wire paddle_dash_n_b = (IF_CW_keys_reversed==1'b1)? paddle_dot_n : paddle_dash_n ;
 
 // Convert WPM -> Dot On time(ms)
 wire [10:0] DotOnTime ;
@@ -75,9 +58,8 @@ div11_8	wpm2ms (.clock(IF_clk), .denom(IF_Keyer_speed),
 // Keyer output
 wire KeyOn_o ;
 wire TxEN_o  ;
-assign clean_cwkey =   (IF_Keyer_Mode==2'd0)? debounced_cwkey_i :
-                       ((IF_Keyer_Mode==2'd1)? KeyOn_o : 1'b0 ) ;
-assign exp_ptt_n =     ((IF_Keyer_Mode==2'd1)& TxEN_o) | FPGA_PTT ;
+assign clean_cwkey = (IF_Keyer_Mode[1]==1'b0) ? KeyOn_o : 1'b0 ;
+assign exp_ptt_n =   ((IF_Keyer_Mode[1]==1'b0) & TxEN_o) | FPGA_PTT ;
 wire   [15:0] sidetone_codec ;
 //assign i2s_tx_data =	{(C122_LR_data[31:16] + sidetone_codec),
 //                      (C122_LR_data[15:0]  + sidetone_codec)} ;
@@ -103,8 +85,9 @@ Keyer keyer(
 	.ToneFreq(IF_CW_Tone_Freq), 			// for Sidetone Audio frequency
 	.audiovolume(IF_CW_Sidetone_Vol),	// Audio volume
 	.sidetone_codec(sidetone_codec),		// Audio codec
-	.do1k(do1k),								// 1ms timing
+//	.do1k(do1k),								// 1ms timing
 	.TxEN_start(TxEN_start),
-	.TxEN_end(TxEN_end)
+	.TxEN_end(TxEN_end),
+	.keyermode(IF_Keyer_Mode==2'd0)		// 1:straight
 ) ;
 endmodule 

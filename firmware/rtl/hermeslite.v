@@ -2094,8 +2094,8 @@ assign IF_mic_Data = C122_mic_data;
 //      IF_Keyer_Mode: 00=Straight, 10=Iambic, 01=PracticeMode, 11=Not defined
 // ============================================================================== //
 
-wire   paddle_dot_n  = io_phone_tip;  // active "L"
-wire   paddle_dash_n = io_phone_ring; // active "L"  
+wire   paddle_dot_n  = io_phone_tip | ~IF_CW_internal;  // active "L"
+wire   paddle_dash_n = io_phone_ring | ~IF_CW_internal; // active "L"
 
 wire   host_dot_n  = ~(IF_I_PWM[2] & IF_CW_internal) ; // Active "L"
 wire   host_dash_n = ~(IF_I_PWM[1] & IF_CW_internal) ; // Active "L"
