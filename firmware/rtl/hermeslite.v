@@ -26,8 +26,8 @@
 module hermeslite(
 
   // Power
-  output          pwr_clk3p3,
-  output          pwr_clk1p2,
+  output logic    pwr_clk3p3 = 1'b0,
+  output logic    pwr_clk1p2 = 1'b0,
   output          pwr_envpa, 
 
 `ifdef BETA2
@@ -222,8 +222,8 @@ assign AssignNR = NR;
 // dipsw[0] selects to identify as hermes or hermes-lite
 
 
-assign pwr_clk3p3 = 1'b0;
-assign pwr_clk1p2 = 1'b0;
+//assign pwr_clk3p3 = 1'b0;
+//assign pwr_clk1p2 = 1'b0;
 
 `ifdef BETA2
 assign pwr_clkvpa = 1'b0;
@@ -1466,6 +1466,7 @@ assign  IF_PHY_drdy = have_room & ~IF_PHY_rdempty;
 reg   [6:0] IF_OC;                  // open collectors on Hermes
 reg   [2:0] IF_Cooling;             // Cooling fan 0:off
 reg         IF_SPK_enable;          // Speaker 1:enable
+reg         disable_syncfreq;       // Reg. Freq 1:disable 0:enable
 reg         Preamp;                 // selects input attenuator setting, 0 = 20dB, 1 = 0dB (preamp ON)
 reg  [31:0] IF_frequency[0:NR];     // Tx, Rx1, Rx2, Rx3
 reg         IF_duplex;
@@ -1504,6 +1505,7 @@ begin
     IF_OC              <= 7'b0;     // decode open collectors on Hermes
     IF_Cooling         <= 3'b0;     // default off
     IF_SPK_enable      <= 1'b1;     // default enable Speaker
+    disable_syncfreq   <= 1'b0;     // default Reg. Freq ctrl enable
     Preamp             <= 1'b1;     // decode Preamp (Attenuator), default on
     IF_duplex          <= 1'b0;     // not in duplex mode
     IF_last_chan       <= 5'b00000;    // default single receiver
@@ -1537,7 +1539,8 @@ begin
       IF_DFS0  <= data[24]; // decode speed
       IF_OC               <= data[23:17]; // decode open collectors on Penelope
       IF_Cooling          <= data[15:13]; // reuse Alex Rx out/Antenna
-      IF_SPK_enable       <= data[12];  // reuse IF_RAND
+      disable_syncfreq    <= data[12];  // reuse Random
+      IF_SPK_enable       <= data[11];  // reuse Dither
       Preamp              <= data[10];  // decode Preamp (Attenuator)  1 = On (0dB atten), 0 = Off (20dB atten)
       IF_duplex           <= data[2];   // save duplex mode
       IF_last_chan        <= data[7:3]; // number of IQ streams to send to PC
@@ -2339,6 +2342,27 @@ assign io_led_d4 = ExtTUNER_disable ? (run ? led_d4 : ~(((network_speed == 2'b01
 assign io_led_d5 = ExtTUNER_disable ? (run ? led_d5 : ~(ad9866pll_locked & good_fast_clk)):
                                       1'bz ;
 
+// ============================================================================== //
+//     FPGA-generated power supply switching frequency
+//     ( source: official gateware 20190907 control.v)
+// ============================================================================== //
+logic [ 5:0]  pwrcnt = 6'h10;
+
+always @(posedge clock_125_mhz_0_deg) begin
+  if (pwrcnt == 6'h00) begin
+    pwrcnt <= 6'd58;
+  end else begin
+    pwrcnt <= pwrcnt - 6'h01;
+  end
+
+  if (disable_syncfreq) begin
+    pwr_clk3p3 <= 1'b0;
+    pwr_clk1p2 <= 1'b0;
+  end else begin
+    if (pwrcnt == 6'h00) pwr_clk3p3 <= ~pwr_clk3p3;
+    if (pwrcnt == 6'h11) pwr_clk1p2 <= ~pwr_clk1p2;
+  end
+end
 
 endmodule
 

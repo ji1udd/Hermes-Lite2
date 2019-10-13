@@ -17,6 +17,18 @@
 - If PureSignal is set off, AD9866 RxPGA is powered down while CW Tx.
 - If on, AD9866 RxPGA is always powered up. (same as previous version)
 
+### straight key AND electronic bug key (8 Oct. 2019)
+- If straight key mode is selected (= iambic mode is not selected) on SDR software, 
+- straight key : Use only dash paddle terminal.
+- electronic bug key ; Use boht dot and dash paddle terminals,
+
+### 160m/80m Noise Mitigation (12 Oct. 2019)
+- the same function as official gateware.
+- Changed Software switch assignment.
+- Random bit : 1 = Disable noise mitigation, 0 = Enable.
+- Dither bit : 1 = Enable Audio Speaker output, 0 = Disable. 
+
+
 ## Software setting
 - [_PowerSDR_](V3_Companion/V3_PowerSDR_Setting.pdf)
 - [_piHPSDR_](V3_Companion/V3_piHPSDR_Setting.pdf)
